@@ -1,11 +1,12 @@
 {
-  "name": "sdn",
+  "name": "azure-functions-nodejs",
   "version": "1.0.0",
-  "description": "",
-  "main": "test.js",
+  "description": "Azure Functions Node.js project",
+  "main": "src/functions/*.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon src/server.js"
+    "test": "echo \"No tests yet...\"",
+    "dev": "nodemon src/server.js",
+    "start": "func start"
   },
   "author": "",
   "license": "ISC",
