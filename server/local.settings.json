@@ -2,17 +2,6 @@
     "IsEncrypted": false,
     "Values": {
         "FUNCTIONS_WORKER_RUNTIME": "node",
-        "AzureWebJobsStorage": "",
-        "EMAIL_USER": "kienpdhe170155@fpt.edu.vn",
-        "EMAIL_PASS": "lrrq jpje rszs cann",
-        "MONGO_URI": "mongodb+srv://kiend1364:grHgFi6e5xU1i9T6@clusterad.z2rsbe0.mongodb.net/?retryWrites=true&w=majority&appName=ClusterAD",
-        "MONGO_NAME": "Azure_Appointment",
-        "JWT_SECRET_KEY": "jwt123",
-        "JWT_EXPIRES_IN": "7d",
-        "JWT_REFRESH_TOKEN_EXPIRES_IN": "30d",
-        "ENCRYPTION_KEY": "beeac1feae2323fa2b08c8ad0a4c78a11bfb3b32af2546071b0e16f0db34bc6a"
-    },
-    "Host": {
-        "CORS": "*"
+        "AzureWebJobsStorage": "UseDevelopmentStorage=true"
     }
 }
