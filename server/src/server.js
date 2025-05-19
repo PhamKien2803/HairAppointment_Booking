@@ -37,16 +37,7 @@ app.use((err, req, res, next) => {
   }
 });
 // Sử dụng routes
-app.use("/employees", allSerice.employeeRouter);
-app.use("/branches", allSerice.branchRouter);
-app.use("/workschedule", allSerice.workScheduleRouter);
-app.use("/services", allSerice.serviceRoute);
-app.use("/vouchers", allSerice.voucherRoute);
 app.use("/auth", allSerice.accountRouter);
-app.use("/appointment", allSerice.appointmentRouter);
-app.use("/invoice", allSerice.invoiceRouter);
-app.use("/customer", allSerice.customerRouter);
-app.use("/dashboard", allSerice.dashboardRouter);
 app.listen(PORT, () => {
   console.log(`🚀 Server đang chạy tại http://localhost:${PORT}`);
 });
