@@ -47,10 +47,7 @@ jobs:
           app_build_command: "npm install && npm run build" # Lệnh build cho Frontend (React Vite)
           api_build_command: "npm install --production" # Lệnh cài đặt dependencies cho Backend (Node.js Express)
         env:
-          # Chỉ định phiên bản Node.js để Oryx sử dụng
-          # Đảm bảo phiên bản này khớp hoặc cao hơn yêu cầu của các gói trong package.json
-          # (Ví dụ: >=20.0.0, nên chọn 20.x hoặc 22.x)
-          NODE_VERSION: "20.x" # Hoặc '22.x' nếu bạn muốn phiên bản mới hơn
+          NODE_VERSION: "20.x"
           ###### End of Repository/Build Configurations ######
 
   close_pull_request_job:
