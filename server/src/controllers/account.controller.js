@@ -1,14 +1,7 @@
 const bcrypt = require("bcryptjs");
-const Account = require("../models/Account");
-const Customer = require("../models/Customer");
-const UserToken = require("../models/UserToken");
-const {
-  findAllGenericRef,
-  findIdGenericRef,
-  createGeneric,
-  updateGeneric,
-  deleteGeneric,
-} = require("../controllers/use.controller");
+const Account = require("../shared/model/Account");
+const Customer = require("../shared/model/Customer");
+const UserToken = require("../shared/model/UserToken");
 const { createAccessToken, createRefreshToken } = require("../utils/jwt");
 const { sendOTPEmail } = require("../utils/emailsOTP");
 
@@ -338,11 +331,6 @@ const changePassword = async (req, res, next) => {
 };
 
 module.exports = {
-  getAllAccounts: findAllGenericRef(Account),
-  getAccountById: findIdGenericRef(Account),
-  createAccount: createGeneric(Account, "Account"),
-  updateAccount: updateGeneric(Account, "Account"),
-  deleteAccount: deleteGeneric(Account, "Account"),
   registerAccount,
   loginAccount,
   getUserProfile,

@@ -3,13 +3,6 @@ const router = express.Router();
 const authMiddleware = require("../middlewares/auth.middleware");
 const accountController = require("../controllers/account.controller")
 
-//CRUD Account
-router.get("/getall", accountController.getAllAccounts);
-router.get("/account/:id", accountController.getAccountById);
-router.post("/create", accountController.createAccount);
-router.put("/update/:id", accountController.updateAccount);
-router.delete("/delete/:id", accountController.deleteAccount);
-
 //Athorization
 router.post("/register", accountController.registerAccount);
 router.post("/login", accountController.loginAccount);

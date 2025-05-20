@@ -8,6 +8,10 @@
     "dev": "nodemon src/server.js",
     "start": "func start"
   },
+  "engines": {
+    "node": ">=20"
+  },
+
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -23,8 +27,6 @@
     "mongoose": "^8.9.3",
     "nodemailer": "^6.10.0",
     "sdn": "file:",
-    "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1",
     "validator": "^13.12.0"
   },
   "devDependencies": {
