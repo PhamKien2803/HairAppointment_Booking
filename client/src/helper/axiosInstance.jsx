@@ -1,8 +1,8 @@
 import axios from "axios";
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const axiosInstance = axios.create({
     // baseURL: "http://localhost:9999",
-    baseURL: "https://your-api-functions-app.azurewebsites.net/api"
+    baseURL: API_BASE_URL,
 });
 
 axiosInstance.interceptors.request.use(
