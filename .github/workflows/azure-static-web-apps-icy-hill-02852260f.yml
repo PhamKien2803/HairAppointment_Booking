@@ -30,6 +30,7 @@ jobs:
           output_location: "dist"        # Built app content directory
         env:
           NODE_VERSION: "20.x"
+          VITE_ENCRYPTION_KEY: ${{ secrets.VITE_ENCRYPTION_KEY }}
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
