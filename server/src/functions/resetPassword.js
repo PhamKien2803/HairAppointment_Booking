@@ -33,7 +33,7 @@ app.http('ResetPassword', {
             if (!user) {
                 return { status: 404, jsonBody: { message: "Account not found" } };
             }
-            user.password = await bcrypt.hash(newPassword, 10);
+            user.password = newPassword;
             await user.save();
             return { status: 200, jsonBody: { message: "Password changed successfully!" } };
         } catch (error) {
