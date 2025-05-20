@@ -5,7 +5,7 @@
         "AzureWebJobsStorage": "",
         "EMAIL_USER": "kienpdhe170155@fpt.edu.vn",
         "EMAIL_PASS": "lrrq jpje rszs cann",
-        "MONGO_URI": "mongodb+srv://kiend1364:grHgFi6e5xU1i9T6@clusterad.z2rsbe0.mongodb.net/?retryWrites=true&w=majority&appName=ClusterAD",
+        "MONGO_URI": "mongodb+srv://dbuser:Kien28102003%40%40@your-nodejs-backend-mongo.global.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
         "MONGO_NAME": "Azure_Appointment",
         "JWT_SECRET_KEY": "jwt123",
         "JWT_EXPIRES_IN": "7d",

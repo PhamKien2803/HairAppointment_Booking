@@ -2,7 +2,7 @@ import axios from "axios";
 
 const axiosInstance = axios.create({
     // baseURL: "http://localhost:9999",
-    baseURL: "https://your-api-functions-app.azurewebsites.net/api/"
+    baseURL: "https://your-api-functions-app.azurewebsites.net/api"
 });
 
 axiosInstance.interceptors.request.use(
