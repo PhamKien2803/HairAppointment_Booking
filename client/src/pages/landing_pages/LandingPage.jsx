@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box, Container } from '@mui/material';
 import Header from '../../components/landing/Header';
 import Slider from '../../components/landing/Slider';
@@ -8,7 +7,6 @@ import TeamSection from '../../components/landing/TeamSection';
 import PricingSection from '../../components/landing/PricingSection';
 import GallerySection from '../../components/landing/GallerySection';
 import CutDetailsSection from '../../components/landing/CutDetailsSection';
-import BlogSection from '../../components/landing/BlogSection';
 import Footer from '../../components/landing/Footer';
 import SplashCursor from '../../components/landing/SplashCursor';
 
