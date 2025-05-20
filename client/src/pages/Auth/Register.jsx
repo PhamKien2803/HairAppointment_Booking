@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Swal from "sweetalert2";
 import axios from "axios";
 import {
     Box,
@@ -63,6 +64,13 @@ const Register = () => {
 
         try {
             const response = await axios.post("/auth/register", formData);
+
+            Swal.fire({
+                icon: "success",
+                title: "Registered Successfully!",
+                text: response.data.message,
+            });
+
             navigate("/login");
         } catch (error) {
             setError(error.response?.data?.message || "Registration failed. Please try again.");
