@@ -14,7 +14,6 @@ import {
   Alert,
 } from "@mui/material";
 import { Add, Delete } from "@mui/icons-material";
-import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import ProfileCustomer from "../customer/ProfileCustomer";
 import { getUserFromToken } from "../../helper/authHelper";
@@ -35,7 +34,7 @@ const CustomerDashboard = () => {
           console.error("Không tìm thấy ID account từ token!");
           return;
         }
-        const response = await axiosInstance.get(`/auth/user-profile`);
+        const response = await axiosInstance.get(`auth/user-profile`);
         setUser(response.data.profile._id);
       } catch (error) {
         console.error("Lỗi khi lấy thông tin user:", error);
@@ -50,7 +49,7 @@ const CustomerDashboard = () => {
         if (!user) return; // Nếu user chưa được xác định, không gọi API
 
         // Gọi API lấy danh sách lịch hẹn
-        const response = await fetch(`http://localhost:9999/appointment/customer/${user}`);
+        const response = await fetch(`appointment/customer/${user}`);
         if (!response.ok) {
           throw new Error("Không thể lấy danh sách lịch hẹn!");
         }
@@ -69,7 +68,7 @@ const CustomerDashboard = () => {
   // Hàm hủy lịch hẹn
   const handleCancel = async (id) => {
     try {
-      const response = await fetch(`http://localhost:9999/appointment/${id}`, {
+      const response = await fetch(`appointment/${id}`, {
         method: "DELETE",
       });
 
