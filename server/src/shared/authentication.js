@@ -1,9 +1,15 @@
 const jwt = require("jsonwebtoken");
 const CryptoJS = require("crypto-js");
-const mongoose = require('mongoose'); 
-
+const mongoose = require('mongoose');
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+
+/**
+ * Decrypts data using AES.
+ * @param {string} encryptedData - The encrypted string in "ivHex:encryptedText" format.
+ * @param {import('@azure/functions').InvocationContext} context - Azure Function context for logging.
+ * @returns {object | null} - The decrypted object or null if decryption fails.
+ */
 const decryptData = (encryptedData, context) => {
     try {
         if (!ENCRYPTION_KEY) {
@@ -11,74 +17,115 @@ const decryptData = (encryptedData, context) => {
             return null;
         }
         const key = CryptoJS.enc.Hex.parse(ENCRYPTION_KEY);
+
         if (typeof encryptedData !== 'string' || encryptedData.indexOf(':') === -1) {
-            context.error(`Invalid encrypted data format: ${encryptedData}`);
+            context.error(`Invalid encrypted data format. Expected "ivHex:encryptedText", got: ${encryptedData}`);
             return null;
         }
-        const [ivHex, encryptedText] = encryptedData.split(":");
+        const parts = encryptedData.split(":");
+        if (parts.length !== 2) {
+            context.error(`Invalid encrypted data format. Expected "ivHex:encryptedText", got: ${encryptedData}`);
+            return null;
+        }
+        const ivHex = parts[0];
+        const encryptedText = parts[1];
+
+        if (!ivHex || !encryptedText) {
+            context.error(`Invalid encrypted data components. IV or Ciphertext is missing from: ${encryptedData}`);
+            return null;
+        }
 
         const iv = CryptoJS.enc.Hex.parse(ivHex);
-        const decrypted = CryptoJS.AES.decrypt(encryptedText, key, { iv });
+        const decrypted = CryptoJS.AES.decrypt(encryptedText, key, {
+            iv: iv,
+            mode: CryptoJS.mode.CBC,
+            padding: CryptoJS.pad.Pkcs7
+        });
 
         const decryptedString = decrypted.toString(CryptoJS.enc.Utf8);
         if (!decryptedString) {
-            context.error("Decryption resulted in empty string.");
+            context.error("Decryption resulted in an empty string. This might indicate an incorrect key, IV, or corrupted data.");
             return null;
         }
         return JSON.parse(decryptedString);
     } catch (error) {
-        context.error(`Error decrypting data: ${error.message}`);
+        context.error(`Error decrypting data: ${error.message}. Input was: ${encryptedData.substring(0, 50)}...`); // Log part of input for context
         return null;
     }
 };
 
 /**
- * Hàm xác thực request cho Azure Functions, thay thế Express middleware.
- * @param {import('@azure/functions').HttpRequest} request - Đối tượng request từ Azure Function.
- * @param {import('@azure/functions').InvocationContext} context - Đối tượng context từ Azure Function.
- * @returns {{status: number, jsonBody: object} | null} - Trả về response lỗi nếu xác thực thất bại, ngược lại trả về null.
+ * Authenticates a request for Azure Functions.
+ * @param {import('@azure/functions').HttpRequest} request - The HTTP request object.
+ * @param {import('@azure/functions').InvocationContext} context - The Azure Function invocation context.
+ * @returns {{status: number, jsonBody: object} | null} - An error response if authentication fails, otherwise null.
  */
 const authenticate = (request, context) => {
     try {
-        const authorizationHeader = request.headers.authorization; 
-        context.log("Authorization Header:", authorizationHeader); 
+        context.log("Starting authentication process...");
+
+        const authorizationHeader = request.headers.authorization;
+        context.log("All request headers (lowercased by Azure runtime):", JSON.stringify(request.headers, null, 2));
+        context.log("Attempting to read 'authorization' header. Value:", authorizationHeader);
 
         if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
-            return { status: 401, jsonBody: { message: "Bạn chưa đăng nhập" } };
+            context.log("Authentication failed: Missing or malformed Authorization header.");
+            if (!authorizationHeader) {
+                context.log("Reason: 'authorization' header is missing or falsy.");
+            } else {
+                context.log("Reason: 'authorization' header does not start with 'Bearer '. Actual value:", authorizationHeader);
+            }
+            return { status: 401, jsonBody: { message: "Bạn chưa đăng nhập. Vui lòng cung cấp token hợp lệ." } }; // "You are not logged in. Please provide a valid token."
         }
 
-        const token = authorizationHeader.split(" ")[1]; 
-        context.log("Token:", token);
+        const token = authorizationHeader.split(" ")[1];
+        context.log("Token extracted:", token ? "**** (token present)" : " (token missing after split)"); // Avoid logging the full token for security
 
-        let decoded;
+        if (!token) {
+            context.log("Authentication failed: Token is missing after splitting the Authorization header.");
+            return { status: 401, jsonBody: { message: "Token không hợp lệ hoặc bị thiếu." } }; // "Token is invalid or missing."
+        }
+
+        let decodedJwtPayload;
         try {
             if (!JWT_SECRET_KEY) {
-                context.error("JWT_SECRET_KEY is not defined in environment variables.");
-                return { status: 500, jsonBody: { message: "Lỗi server: JWT secret key không được cấu hình." } };
+                context.error("JWT_SECRET_KEY is not defined in environment variables. Cannot verify token.");
+                return { status: 500, jsonBody: { message: "Lỗi server: JWT secret key không được cấu hình." } }; // "Server error: JWT secret key is not configured."
             }
-            decoded = jwt.verify(token, JWT_SECRET_KEY);
+            decodedJwtPayload = jwt.verify(token, JWT_SECRET_KEY);
         } catch (err) {
-            context.error(`Token verification error: ${err.message}`);
+            context.error(`Token verification error: ${err.message}. Token: ${token.substring(0, 10)}... (partial)`);
             if (err.name === 'TokenExpiredError') {
-                return { status: 403, jsonBody: { message: "Token đã hết hạn" } };
+                return { status: 403, jsonBody: { message: "Token đã hết hạn." } }; // "Token has expired."
             }
-            return { status: 403, jsonBody: { message: "Token không hợp lệ" } };
+            if (err.name === 'JsonWebTokenError') {
+                return { status: 403, jsonBody: { message: "Token không hợp lệ." } }; // "Token is invalid."
+            }
+            return { status: 403, jsonBody: { message: "Xác thực token thất bại." } }; // "Token authentication failed."
         }
 
-        context.log("Decoded trước giải mã:", decoded);
-        const decryptedData = decryptData(decoded.data, context); 
-        context.log("Decoded sau giải mã:", decryptedData);
-        if (!decryptedData || !decryptedData.id || !mongoose.Types.ObjectId.isValid(decryptedData.id)) {
-            context.log("ID không hợp lệ hoặc giải mã thất bại:", decryptedData?.id);
-            return { status: 400, jsonBody: { message: "Token không chứa ID hợp lệ hoặc dữ liệu giải mã bị lỗi" } };
+        context.log("Token decoded (JWT payload before decryption):", JSON.stringify(decodedJwtPayload, null, 2)); // Be mindful of sensitive data in logs
+
+        if (!decodedJwtPayload.data) {
+            context.error("Decoded JWT payload does not contain 'data' field for decryption.");
+            return { status: 400, jsonBody: { message: "Token không chứa dữ liệu được mã hóa cần thiết." } }; // "Token does not contain necessary encrypted data."
         }
 
-        request.account = { id: decryptedData.id, role: decryptedData.role };
+        const decryptedAccountData = decryptData(decodedJwtPayload.data, context);
+        context.log("Data after decryption:", decryptedAccountData ? JSON.stringify(decryptedAccountData, null, 2) : " (decryption failed or returned null)");
 
-        return null; 
+        if (!decryptedAccountData || !decryptedAccountData.id || !mongoose.Types.ObjectId.isValid(decryptedAccountData.id)) {
+            context.log("Invalid ID or decryption failed. Decrypted ID:", decryptedAccountData ? decryptedAccountData.id : "N/A");
+            return { status: 400, jsonBody: { message: "Token không chứa ID người dùng hợp lệ hoặc dữ liệu giải mã bị lỗi." } }; // "Token does not contain a valid user ID or decrypted data is corrupted."
+        }
+
+        request.account = { id: decryptedAccountData.id, role: decryptedAccountData.role };
+        context.log("Authentication successful. User ID:", request.account.id, "Role:", request.account.role);
+
+        return null;
     } catch (error) {
-        context.error(`Lỗi trong authenticate helper: ${error.message}`); 
-        return { status: 401, jsonBody: { message: "Lỗi xác thực", error: error.message } };
+        context.error(`Unexpected error in authenticate helper: ${error.message}`, error.stack);
+        return { status: 500, jsonBody: { message: "Lỗi xác thực không mong muốn.", error: error.message } }; // "Unexpected authentication error."
     }
 };
 
