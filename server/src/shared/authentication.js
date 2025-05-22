@@ -6,8 +6,8 @@ const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
 
 /**
  * Decrypts data using AES.
- * @param {string} encryptedData - The encrypted string in "ivHex:encryptedText" format.
- * @param {import('@azure/functions').InvocationContext} context - Azure Function context for logging.
+ * @param {string} encryptedData 
+ * @param {import('@azure/functions').InvocationContext} context
  * @returns {object | null} - The decrypted object or null if decryption fails.
  */
 const decryptData = (encryptedData, context) => {
@@ -49,16 +49,16 @@ const decryptData = (encryptedData, context) => {
         }
         return JSON.parse(decryptedString);
     } catch (error) {
-        context.error(`Error decrypting data: ${error.message}. Input was: ${encryptedData.substring(0, 50)}...`); // Log part of input for context
+        context.error(`Error decrypting data: ${error.message}. Input was: ${encryptedData.substring(0, 50)}...`);
         return null;
     }
 };
 
 /**
  * Authenticates a request for Azure Functions.
- * @param {import('@azure/functions').HttpRequest} request - The HTTP request object.
- * @param {import('@azure/functions').InvocationContext} context - The Azure Function invocation context.
- * @returns {{status: number, jsonBody: object} | null} - An error response if authentication fails, otherwise null.
+ * @param {import('@azure/functions').HttpRequest} request 
+ * @param {import('@azure/functions').InvocationContext} context 
+ * @returns {{status: number, jsonBody: object} | null} 
  */
 const authenticate = (request, context) => {
     try {
@@ -75,40 +75,40 @@ const authenticate = (request, context) => {
             } else {
                 context.log("Reason: 'authorization' header does not start with 'Bearer '. Actual value:", authorizationHeader);
             }
-            return { status: 401, jsonBody: { message: "Bạn chưa đăng nhập. Vui lòng cung cấp token hợp lệ." } }; // "You are not logged in. Please provide a valid token."
+            return { status: 401, jsonBody: { message: "Bạn chưa đăng nhập. Vui lòng cung cấp token hợp lệ." } };
         }
 
         const token = authorizationHeader.split(" ")[1];
-        context.log("Token extracted:", token ? "**** (token present)" : " (token missing after split)"); // Avoid logging the full token for security
+        context.log("Token extracted:", token ? "**** (token present)" : " (token missing after split)");
 
         if (!token) {
             context.log("Authentication failed: Token is missing after splitting the Authorization header.");
-            return { status: 401, jsonBody: { message: "Token không hợp lệ hoặc bị thiếu." } }; // "Token is invalid or missing."
+            return { status: 401, jsonBody: { message: "Token không hợp lệ hoặc bị thiếu." } };
         }
 
         let decodedJwtPayload;
         try {
             if (!JWT_SECRET_KEY) {
                 context.error("JWT_SECRET_KEY is not defined in environment variables. Cannot verify token.");
-                return { status: 500, jsonBody: { message: "Lỗi server: JWT secret key không được cấu hình." } }; // "Server error: JWT secret key is not configured."
+                return { status: 500, jsonBody: { message: "Lỗi server: JWT secret key không được cấu hình." } };
             }
             decodedJwtPayload = jwt.verify(token, JWT_SECRET_KEY);
         } catch (err) {
             context.error(`Token verification error: ${err.message}. Token: ${token.substring(0, 10)}... (partial)`);
             if (err.name === 'TokenExpiredError') {
-                return { status: 403, jsonBody: { message: "Token đã hết hạn." } }; // "Token has expired."
+                return { status: 403, jsonBody: { message: "Token đã hết hạn." } };
             }
             if (err.name === 'JsonWebTokenError') {
-                return { status: 403, jsonBody: { message: "Token không hợp lệ." } }; // "Token is invalid."
+                return { status: 403, jsonBody: { message: "Token không hợp lệ." } };
             }
-            return { status: 403, jsonBody: { message: "Xác thực token thất bại." } }; // "Token authentication failed."
+            return { status: 403, jsonBody: { message: "Xác thực token thất bại." } };
         }
 
-        context.log("Token decoded (JWT payload before decryption):", JSON.stringify(decodedJwtPayload, null, 2)); // Be mindful of sensitive data in logs
+        context.log("Token decoded (JWT payload before decryption):", JSON.stringify(decodedJwtPayload, null, 2));
 
         if (!decodedJwtPayload.data) {
             context.error("Decoded JWT payload does not contain 'data' field for decryption.");
-            return { status: 400, jsonBody: { message: "Token không chứa dữ liệu được mã hóa cần thiết." } }; // "Token does not contain necessary encrypted data."
+            return { status: 400, jsonBody: { message: "Token không chứa dữ liệu được mã hóa cần thiết." } };
         }
 
         const decryptedAccountData = decryptData(decodedJwtPayload.data, context);
@@ -116,7 +116,7 @@ const authenticate = (request, context) => {
 
         if (!decryptedAccountData || !decryptedAccountData.id || !mongoose.Types.ObjectId.isValid(decryptedAccountData.id)) {
             context.log("Invalid ID or decryption failed. Decrypted ID:", decryptedAccountData ? decryptedAccountData.id : "N/A");
-            return { status: 400, jsonBody: { message: "Token không chứa ID người dùng hợp lệ hoặc dữ liệu giải mã bị lỗi." } }; // "Token does not contain a valid user ID or decrypted data is corrupted."
+            return { status: 400, jsonBody: { message: "Token không chứa ID người dùng hợp lệ hoặc dữ liệu giải mã bị lỗi." } };
         }
 
         request.account = { id: decryptedAccountData.id, role: decryptedAccountData.role };
@@ -125,7 +125,7 @@ const authenticate = (request, context) => {
         return null;
     } catch (error) {
         context.error(`Unexpected error in authenticate helper: ${error.message}`, error.stack);
-        return { status: 500, jsonBody: { message: "Lỗi xác thực không mong muốn.", error: error.message } }; // "Unexpected authentication error."
+        return { status: 500, jsonBody: { message: "Lỗi xác thực không mong muốn.", error: error.message } };
     }
 };
 
