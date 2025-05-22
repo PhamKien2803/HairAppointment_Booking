@@ -20,7 +20,7 @@ const decryptData = (encryptedData) => {
     }
 };
 
-module.exports = (req, res, next) => {
+module.exports.authenticate = (req, res, next) => {
     try {
         const authorizationHeader = req.headers.authorization;
         console.log("Authorization Header:", authorizationHeader);

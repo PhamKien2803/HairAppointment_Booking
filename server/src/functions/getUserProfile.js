@@ -1,6 +1,6 @@
 const { app } = require('@azure/functions');
 const Account = require("../shared/model/Account");
-const authenticate = require("../shared/authentication");
+const authenticate = require("../middlewares/auth.middleware");
 const connectDB = require('../shared/mongoose');
 
 
