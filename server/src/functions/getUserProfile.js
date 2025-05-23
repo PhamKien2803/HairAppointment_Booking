@@ -6,7 +6,7 @@ const connectDB = require('../shared/mongoose');
 
 app.http('GetUserProfile', {
     methods: ['GET'],
-    authLevel: 'function',
+    authLevel: 'user',
     route: 'auth/user-profile',
     handler: async (request, context) => {
         const authResult = authenticate(request, context);
