@@ -13,6 +13,8 @@
         "ENCRYPTION_KEY": "beeac1feae2323fa2b08c8ad0a4c78a11bfb3b32af2546071b0e16f0db34bc6a"
     },
     "Host": {
-        "CORS": "*"
+        "CORS": "*",
+        "CORSCredentials": false,
+        "LocalHttpPort": 7071
     }
 }
